@@ -1,0 +1,236 @@
+{
+  "entities": {
+    "SystemPairing": {
+      "title": "SystemPairing",
+      "description": "Enforces strict two-user registration limit and pairing state between User A and User B",
+      "type": "object",
+      "properties": {
+        "userAId": {
+          "type": "string",
+          "description": "UID of owner/first user"
+        },
+        "userBId": {
+          "type": "string",
+          "description": "UID of second authorized user"
+        },
+        "inviteCode": {
+          "type": "string",
+          "description": "Secret one-time pairing invite code created by User A"
+        },
+        "registeredCount": {
+          "type": "integer",
+          "description": "Total registered accounts, strictly maximum 2"
+        },
+        "isLocked": {
+          "type": "boolean",
+          "description": "True when both accounts are registered, permanently locking further registrations"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp via server timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last updated timestamp via server timestamp"
+        }
+      },
+      "required": ["userAId", "registeredCount", "isLocked"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private profile and hashed access credentials for authorized user",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display nickname"
+        },
+        "secretCodeHash": {
+          "type": "string",
+          "description": "Salted SHA-256 hash of user custom secret access code"
+        },
+        "salt": {
+          "type": "string",
+          "description": "Random cryptographic salt for secret code hash"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["owner", "member"],
+          "description": "Account role"
+        },
+        "publicKey": {
+          "type": "string",
+          "description": "End-to-end encryption key material"
+        },
+        "isOnline": {
+          "type": "boolean",
+          "description": "Presence indicator"
+        },
+        "lastSeen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last activity timestamp"
+        },
+        "isTyping": {
+          "type": "boolean",
+          "description": "Typing status in active chat"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Profile update timestamp"
+        }
+      },
+      "required": ["userId", "displayName", "secretCodeHash", "salt", "role"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Encrypted 1-to-1 message between the two authorized users",
+      "type": "object",
+      "properties": {
+        "senderId": {
+          "type": "string",
+          "description": "UID of sender"
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "UID of receiver"
+        },
+        "encryptedText": {
+          "type": "string",
+          "description": "AES-GCM encrypted payload or ciphertext"
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["text", "image", "video", "audio"],
+          "description": "Type of message payload"
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "Base64 or secure storage URL for attachment"
+        },
+        "audioDuration": {
+          "type": "integer",
+          "description": "Duration in seconds for voice notes"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["sent", "delivered", "read"],
+          "description": "Delivery and read receipt status"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "description": "Whether message is deleted for both users"
+        },
+        "deletedFor": {
+          "type": "string",
+          "description": "UID if deleted only for sender/receiver"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Message creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Message update timestamp"
+        }
+      },
+      "required": ["senderId", "receiverId", "encryptedText", "mediaType", "status"]
+    },
+    "CallSession": {
+      "title": "CallSession",
+      "description": "WebRTC audio/video call signaling session",
+      "type": "object",
+      "properties": {
+        "callerId": {
+          "type": "string",
+          "description": "UID of caller"
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "UID of receiver"
+        },
+        "callType": {
+          "type": "string",
+          "enum": ["audio", "video"],
+          "description": "Audio or video call"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ringing", "accepted", "rejected", "ended", "busy"],
+          "description": "Call progress status"
+        },
+        "offerSdp": {
+          "type": "string",
+          "description": "WebRTC SDP offer payload"
+        },
+        "answerSdp": {
+          "type": "string",
+          "description": "WebRTC SDP answer payload"
+        },
+        "callerCandidates": {
+          "type": "string",
+          "description": "Serialized ICE candidates from caller"
+        },
+        "receiverCandidates": {
+          "type": "string",
+          "description": "Serialized ICE candidates from receiver"
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Call initiation timestamp"
+        },
+        "endedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Call termination timestamp"
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "description": "Call duration in seconds"
+        }
+      },
+      "required": ["callerId", "receiverId", "callType", "status"]
+    }
+  },
+  "firestore": {
+    "/system_config/{configId}": {
+      "schema": {
+        "$ref": "#/entities/SystemPairing"
+      },
+      "description": "Pairing configuration holding user limit and active IDs"
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "User profiles and credentials"
+    },
+    "/messages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/ChatMessage"
+      },
+      "description": "Encrypted 1-to-1 chat messages"
+    },
+    "/calls/{callId}": {
+      "schema": {
+        "$ref": "#/entities/CallSession"
+      },
+      "description": "WebRTC signaling sessions for audio and video calls"
+    }
+  }
+}

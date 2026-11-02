@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Glowing outer shield badge -->
+    <path
+        android:pathData="M54,26 C40,26 34,31 34,31 C34,49 43,67 54,78 C65,67 74,49 74,31 C74,31 68,26 54,26 Z"
+        android:strokeWidth="2.5"
+        android:strokeColor="#0A84FF">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="34"
+                android:startY="26"
+                android:endX="74"
+                android:endY="78"
+                android:type="linear">
+                <item android:color="#260A84FF" android:offset="0.0" />
+                <item android:color="#0A0A84FF" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Inner Lock & Message Node -->
+    <!-- Lock shackle -->
+    <path
+        android:pathData="M48,46 L48,41 C48,37.7 50.7,35 54,35 C57.3,35 60,37.7 60,41 L60,46"
+        android:strokeWidth="2.8"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Lock body / Speech bubble -->
+    <path
+        android:pathData="M44,46 L64,46 C66.2,46 68,47.8 68,50 L68,60 C68,62.2 66.2,64 64,64 L58,64 L53,68 L53,64 L44,64 C41.8,64 40,62.2 40,60 L40,50 C40,47.8 41.8,46 44,46 Z"
+        android:fillColor="#0A84FF" />
+    <!-- Keyhole -->
+    <path
+        android:pathData="M54,52 C52.9,52 52,52.9 52,54 C52,54.7 52.4,55.3 53,55.7 L53,58 L55,58 L55,55.7 C55.6,55.3 56,54.7 56,54 C56,52.9 55.1,52 54,52 Z"
+        android:fillColor="#FFFFFF" />
+</vector>

@@ -1,0 +1,6 @@
+{
+  "name": "SecretTalk",
+  "description": "Two-person private encrypted messenger and audio/video calling application",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

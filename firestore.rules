@@ -1,0 +1,137 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidTimestamp(val) {
+      return val is timestamp && val <= request.time;
+    }
+
+    // --- Validation Helpers ---
+
+    function isValidSystemPairing(data) {
+      return data.userAId is string &&
+             data.userAId.size() > 0 &&
+             data.registeredCount is int &&
+             data.registeredCount >= 1 &&
+             data.registeredCount <= 2 &&
+             data.isLocked is bool &&
+             (!('userBId' in data) || data.userBId == null || data.userBId is string) &&
+             (!('inviteCode' in data) || data.inviteCode is string) &&
+             (!('createdAt' in data) || isValidTimestamp(data.createdAt)) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId == request.auth.uid &&
+             data.displayName is string &&
+             data.displayName.size() >= 1 &&
+             data.displayName.size() <= 60 &&
+             data.secretCodeHash is string &&
+             data.secretCodeHash.size() >= 32 &&
+             data.salt is string &&
+             data.role in ['owner', 'member'] &&
+             (!('publicKey' in data) || data.publicKey is string) &&
+             (!('isOnline' in data) || data.isOnline is bool) &&
+             (!('isTyping' in data) || data.isTyping is bool) &&
+             (!('lastSeen' in data) || data.lastSeen is timestamp) &&
+             (!('createdAt' in data) || isValidTimestamp(data.createdAt)) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidChatMessage(data) {
+      return data.senderId == request.auth.uid &&
+             data.receiverId is string &&
+             data.receiverId.size() > 0 &&
+             data.encryptedText is string &&
+             data.mediaType in ['text', 'image', 'video', 'audio'] &&
+             data.status in ['sent', 'delivered', 'read'] &&
+             (!('mediaUrl' in data) || data.mediaUrl is string) &&
+             (!('audioDuration' in data) || data.audioDuration is int || data.audioDuration is float) &&
+             (!('isDeleted' in data) || data.isDeleted is bool) &&
+             (!('deletedFor' in data) || data.deletedFor is string) &&
+             (!('createdAt' in data) || isValidTimestamp(data.createdAt)) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidCallSession(data) {
+      return (data.callerId == request.auth.uid || data.receiverId == request.auth.uid) &&
+             data.callerId is string &&
+             data.receiverId is string &&
+             data.callType in ['audio', 'video'] &&
+             data.status in ['ringing', 'accepted', 'rejected', 'ended', 'busy'] &&
+             (!('offerSdp' in data) || data.offerSdp is string) &&
+             (!('answerSdp' in data) || data.answerSdp is string) &&
+             (!('callerCandidates' in data) || data.callerCandidates is string) &&
+             (!('receiverCandidates' in data) || data.receiverCandidates is string) &&
+             (!('durationSeconds' in data) || data.durationSeconds is int) &&
+             (!('startedAt' in data) || isValidTimestamp(data.startedAt)) &&
+             (!('endedAt' in data) || isValidTimestamp(data.endedAt));
+    }
+
+    // --- Collections ---
+
+    match /system_config/{configId} {
+      allow read: if isAuthenticated();
+      // Allow User A to register as owner
+      allow create: if isAuthenticated() &&
+                    configId == 'pairing' &&
+                    isValidSystemPairing(request.resource.data) &&
+                    request.resource.data.userAId == request.auth.uid &&
+                    request.resource.data.registeredCount == 1 &&
+                    !request.resource.data.isLocked;
+      // Allow User A to update invite code or User B to pair (up to 2 accounts max)
+      allow update: if isAuthenticated() &&
+                    configId == 'pairing' &&
+                    isValidSystemPairing(request.resource.data) &&
+                    (
+                      (resource.data.userAId == request.auth.uid) ||
+                      (resource.data.registeredCount == 1 &&
+                       !resource.data.isLocked &&
+                       request.resource.data.registeredCount == 2 &&
+                       request.resource.data.userBId == request.auth.uid &&
+                       request.resource.data.isLocked == true) ||
+                      (resource.data.userBId == request.auth.uid)
+                    );
+      allow delete: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isOwner(userId);
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() &&
+                  (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow create: if isAuthenticated() &&
+                    request.resource.data.senderId == request.auth.uid &&
+                    isValidChatMessage(request.resource.data);
+      allow update: if isAuthenticated() &&
+                    (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow delete: if isAuthenticated() &&
+                    (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+    }
+
+    match /calls/{callId} {
+      allow read: if isAuthenticated() &&
+                  (resource.data.callerId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow create: if isAuthenticated() &&
+                    request.resource.data.callerId == request.auth.uid &&
+                    isValidCallSession(request.resource.data);
+      allow update: if isAuthenticated() &&
+                    (resource.data.callerId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow delete: if isAuthenticated() &&
+                    (resource.data.callerId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+    }
+  }
+}

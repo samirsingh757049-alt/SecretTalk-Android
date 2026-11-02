@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">SecretTalk</string>
+    <string name="title_lock_screen">Secret Access</string>
+    <string name="title_private_chat">Private Chat</string>
+    <string name="title_audio_call">Encrypted Audio Call</string>
+    <string name="title_video_call">Encrypted Video Call</string>
+    <string name="title_settings">Privacy &amp; Security</string>
+    <string name="title_hidden_icon">Hidden App Icon</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="btn_unlock">Unlock</string>
+    <string name="btn_lock_now">Lock Now</string>
+</resources>
