@@ -40,6 +40,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -86,6 +88,7 @@ import com.example.ui.theme.IosBubbleSent
 import com.example.ui.theme.IosCardBg
 import com.example.ui.theme.IosDivider
 import com.example.ui.theme.IosGreen
+import com.example.ui.theme.IosOrange
 import com.example.ui.theme.IosRed
 import com.example.ui.theme.IosSurface
 import com.example.ui.theme.IosTextPrimary
@@ -109,6 +112,8 @@ fun PrivateChatScreen(
     onStartCall: (isVideo: Boolean) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenHiddenIcon: () -> Unit = {},
+    isIconHidden: Boolean = false,
     onTypingChange: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -239,6 +244,17 @@ fun PrivateChatScreen(
                             imageVector = Icons.Default.Videocam,
                             contentDescription = "Video Call",
                             tint = IosBlue
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onOpenHiddenIcon,
+                        modifier = Modifier.testTag("stealth_hide_button")
+                    ) {
+                        Icon(
+                            imageVector = if (isIconHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = "APK Hide Feature",
+                            tint = if (isIconHidden) IosOrange else IosTextSecondary
                         )
                     }
 

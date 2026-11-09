@@ -373,7 +373,9 @@ class SecretTalkViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             val app = getApplication<Application>()
             val pm = app.packageManager
-            val aliasName = ComponentName(app, "com.example.MainActivityAlias")
+            val alias1 = ComponentName(app, "com.example.MainActivityAlias")
+            val alias2 = ComponentName(app.packageName, "com.example.MainActivityAlias")
+            val alias3 = ComponentName(app.packageName, "${app.packageName}.MainActivityAlias")
 
             val newState = if (hide) {
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED
@@ -381,16 +383,23 @@ class SecretTalkViewModel(application: Application) : AndroidViewModel(applicati
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED
             }
 
-            try {
-                pm.setComponentEnabledSetting(aliasName, newState, PackageManager.DONT_KILL_APP)
+            var updated = false
+            for (alias in listOf(alias1, alias2, alias3)) {
+                try {
+                    pm.setComponentEnabledSetting(alias, newState, PackageManager.DONT_KILL_APP)
+                    updated = true
+                } catch (ignored: Exception) {}
+            }
+
+            if (updated) {
                 preferences.setIconHidden(hide)
                 _statusMessage.value = if (hide) {
-                    "Launcher icon hidden. Use secrettalk://open in browser or deep link to open."
+                    "Launcher icon hidden! Dial *#*#7327#*#* or open secrettalk://open to reopen."
                 } else {
-                    "Launcher icon restored."
+                    "Launcher icon restored to home screen and app drawer."
                 }
-            } catch (e: Exception) {
-                _statusMessage.value = "Failed to update icon: ${e.message}"
+            } else {
+                _statusMessage.value = "Failed to update icon component setting."
             }
         }
     }

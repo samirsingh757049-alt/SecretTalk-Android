@@ -75,6 +75,7 @@ class MainActivity : ComponentActivity() {
 fun MainAppNavigation(viewModel: SecretTalkViewModel) {
     var showSplash by remember { mutableStateOf(true) }
     var currentSubScreen by remember { mutableStateOf(AppSubScreen.CHAT) }
+    var previousSubScreen by remember { mutableStateOf(AppSubScreen.CHAT) }
 
     val currentUserId by viewModel.currentUserId.collectAsState()
     val isLocked by viewModel.isLocked.collectAsState()
@@ -217,11 +218,18 @@ fun MainAppNavigation(viewModel: SecretTalkViewModel) {
                     viewModel.startCall(isVideo)
                 },
                 onOpenSettings = {
+                    previousSubScreen = AppSubScreen.CHAT
                     currentSubScreen = AppSubScreen.PRIVACY_SETTINGS
                 },
                 onOpenProfile = {
+                    previousSubScreen = AppSubScreen.CHAT
                     currentSubScreen = AppSubScreen.PROFILE
                 },
+                onOpenHiddenIcon = {
+                    previousSubScreen = AppSubScreen.CHAT
+                    currentSubScreen = AppSubScreen.HIDDEN_ICON
+                },
+                isIconHidden = isIconHidden,
                 onTypingChange = { viewModel.setTyping(it) }
             )
         }
@@ -232,7 +240,10 @@ fun MainAppNavigation(viewModel: SecretTalkViewModel) {
             }
             PrivacySettingsScreen(
                 onNavigateBack = { currentSubScreen = AppSubScreen.CHAT },
-                onNavigateToHiddenIcon = { currentSubScreen = AppSubScreen.HIDDEN_ICON },
+                onNavigateToHiddenIcon = {
+                    previousSubScreen = AppSubScreen.PRIVACY_SETTINGS
+                    currentSubScreen = AppSubScreen.HIDDEN_ICON
+                },
                 onLockNow = { viewModel.lockNow() },
                 onLogout = {
                     viewModel.logout {}
@@ -257,13 +268,13 @@ fun MainAppNavigation(viewModel: SecretTalkViewModel) {
 
         AppSubScreen.HIDDEN_ICON -> {
             BackHandler {
-                currentSubScreen = AppSubScreen.PRIVACY_SETTINGS
+                currentSubScreen = previousSubScreen
             }
             HiddenIconScreen(
                 isIconHidden = isIconHidden,
                 statusFeedback = statusMessage,
                 onToggleHideIcon = { viewModel.toggleLauncherIcon(it) },
-                onNavigateBack = { currentSubScreen = AppSubScreen.PRIVACY_SETTINGS }
+                onNavigateBack = { currentSubScreen = previousSubScreen }
             )
         }
     }

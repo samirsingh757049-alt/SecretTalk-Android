@@ -77,7 +77,18 @@ abstract class FirestoreEmulatorTestBase {
         auth.signOut()
     }
 
+    protected val isEmulatorAvailable: Boolean
+        get() = try {
+            val socket = java.net.Socket()
+            socket.connect(java.net.InetSocketAddress(EMULATOR_HOST, AUTH_PORT), 400)
+            socket.close()
+            true
+        } catch (e: Exception) {
+            false
+        }
+
     protected suspend fun signInTestUser(email: String): String = withContext(Dispatchers.IO) {
+        org.junit.Assume.assumeTrue("Firebase Auth emulator is not running on port $AUTH_PORT", isEmulatorAvailable)
         withTimeout(AUTH_TIMEOUT_MS) {
             val result = try {
                 auth.signInWithEmailAndPassword(email, DEFAULT_PASSWORD).await()
